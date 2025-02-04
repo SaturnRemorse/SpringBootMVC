@@ -2,31 +2,39 @@ package com.saturnremorse.springbootmvc.controllers;
 
 
 import com.saturnremorse.springbootmvc.dto.EmployeeDto;
+import com.saturnremorse.springbootmvc.entities.EmployeeEntity;
+import com.saturnremorse.springbootmvc.repositories.EmployeeRepo;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @RestController
 @RequestMapping(path="/employees")
 public class EmployeeController {
 
+
+    @Autowired
+    EmployeeRepo employeeRepo;
+
+
     @GetMapping("/{employeeId}")
-    public EmployeeDto getEmployee(@PathVariable Long employeeId){
-        return new EmployeeDto(employeeId,"rengoku", "rengoku@hashira.com",23, LocalDate.of(2022,12,13), true);
+    public EmployeeEntity getEmployee(@PathVariable Long employeeId){
+        return employeeRepo.findById(employeeId).orElse(null);
     }
     @GetMapping(path = "/")
-    public String getAllEmployees(@RequestParam(required = false) Integer age,
-                                  @RequestParam(required = false) String sortBy){
-        return "Age is "+age+" and sort By is "+sortBy;
+    public List<EmployeeEntity> getAllEmployees(){
+        return employeeRepo.findAll();
     }
 
     @PostMapping
-    public EmployeeDto addNewEmployee(@RequestBody EmployeeDto employeeDto){
-        return new EmployeeDto(employeeDto.getEmployee_id(), employeeDto.getName(),employeeDto.getEmail(),employeeDto.getAge(), employeeDto.getDateOfJoining(),employeeDto.getIsActive());
+    public EmployeeEntity addNewEmployee(@RequestBody EmployeeEntity inputEmployee){
+        return employeeRepo.save(inputEmployee);
     }
 
     @DeleteMapping(path="/{employeeId}")
-    public String deleteEmployeeById(@PathVariable Long employeeId){
-        return "deleted employee "+ employeeId;
+    public void deleteEmployeeById(@PathVariable Long employeeId){
+        employeeRepo.deleteById(employeeId);
     }
 }
