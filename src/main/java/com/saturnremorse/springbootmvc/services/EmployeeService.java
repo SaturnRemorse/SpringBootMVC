@@ -6,8 +6,12 @@ import com.saturnremorse.springbootmvc.repositories.EmployeeRepo;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ReflectionUtils;
 
+import java.lang.reflect.Field;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -20,10 +24,8 @@ public class EmployeeService {
     ModelMapper modelMapper;
 
 
-    public EmployeeDto getEmployeeById(Long empId){
-        EmployeeEntity employee = employeeRepo.findById(empId).orElse(null);
-        return modelMapper.map(employee,EmployeeDto.class);
-
+    public Optional<EmployeeDto> getEmployeeById(Long empId){
+        return employeeRepo.findById(empId).map(employeeEntity -> modelMapper.map(employeeEntity, EmployeeDto.class));
     }
 
     public List<EmployeeDto> getAllEmployees(){
@@ -37,8 +39,30 @@ public class EmployeeService {
 
     }
 
-    public void deleteEmployeeById(Long id){
+    public boolean deleteEmployeeById(Long id){
+        boolean exists = employeeRepo.existsById(id);
+        if(!exists) return false;
         employeeRepo.deleteById(id);
+        return true;
 
+    }
+
+    public EmployeeDto updateEmployeeById(EmployeeDto inputDto, Long employeeId) {
+        EmployeeEntity inputEntity = modelMapper.map(inputDto, EmployeeEntity.class);
+        inputEntity.setEmployee_id(employeeId);
+        return modelMapper.map(employeeRepo.save(inputEntity),EmployeeDto.class);
+
+    }
+
+    public EmployeeDto updatePartialEmployee(Map<String, Object> updates, Long employeeId) {
+        boolean isExists = employeeRepo.existsById(employeeId);
+        if(!isExists) return null;
+        EmployeeEntity employeeEntity = employeeRepo.findById(employeeId).get();
+        updates.forEach((field, value) -> {
+            Field fieldToBeUpdated = ReflectionUtils.findField(EmployeeEntity.class, field);
+            fieldToBeUpdated.setAccessible(true);
+            ReflectionUtils.setField(fieldToBeUpdated,employeeEntity,value);
+        });
+        return modelMapper.map(employeeRepo.save(employeeEntity),EmployeeDto.class);
     }
 }
