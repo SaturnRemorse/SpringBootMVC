@@ -2,6 +2,7 @@ package com.saturnremorse.springbootmvc.controllers;
 
 
 import com.saturnremorse.springbootmvc.dto.EmployeeDto;
+import com.saturnremorse.springbootmvc.exceptions.ResourseNotFoundException;
 import com.saturnremorse.springbootmvc.services.EmployeeService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 @RestController
@@ -25,8 +27,11 @@ public class EmployeeController {
     @GetMapping("/{employeeId}")
     public ResponseEntity<EmployeeDto> getEmployee(@PathVariable Long employeeId){
         Optional<EmployeeDto> employeeDto = employeeService.getEmployeeById(employeeId);
-        return employeeDto.map(employeeDto1 -> new ResponseEntity<>(employeeDto1, HttpStatus.OK)).orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+        return employeeDto.map(employeeDto1 -> new ResponseEntity<>(employeeDto1, HttpStatus.OK))
+                .orElseThrow(() -> new ResourseNotFoundException("Employee Not found for id "+employeeId));
+
     }
+
     @GetMapping(path = "/")
     public ResponseEntity<List<EmployeeDto>> getAllEmployees(){
         List<EmployeeDto> employeeDtos =  employeeService.getAllEmployees();

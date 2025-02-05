@@ -2,6 +2,7 @@ package com.saturnremorse.springbootmvc.services;
 
 import com.saturnremorse.springbootmvc.dto.EmployeeDto;
 import com.saturnremorse.springbootmvc.entities.EmployeeEntity;
+import com.saturnremorse.springbootmvc.exceptions.ResourseNotFoundException;
 import com.saturnremorse.springbootmvc.repositories.EmployeeRepo;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,15 +40,21 @@ public class EmployeeService {
 
     }
 
-    public boolean deleteEmployeeById(Long id){
-        boolean exists = employeeRepo.existsById(id);
-        if(!exists) return false;
-        employeeRepo.deleteById(id);
+    public boolean deleteEmployeeById(Long employeeId){
+        boolean isExists = employeeRepo.existsById(employeeId);
+        if(!isExists){
+            throw new ResourseNotFoundException("Employee with id "+employeeId+" does not exists");
+        }
+        employeeRepo.deleteById(employeeId);
         return true;
 
     }
 
     public EmployeeDto updateEmployeeById(EmployeeDto inputDto, Long employeeId) {
+        boolean isExists = employeeRepo.existsById(employeeId);
+        if(!isExists){
+            throw new ResourseNotFoundException("Employee with id "+employeeId+" does not exists");
+        }
         EmployeeEntity inputEntity = modelMapper.map(inputDto, EmployeeEntity.class);
         inputEntity.setEmployee_id(employeeId);
         return modelMapper.map(employeeRepo.save(inputEntity),EmployeeDto.class);
@@ -56,7 +63,9 @@ public class EmployeeService {
 
     public EmployeeDto updatePartialEmployee(Map<String, Object> updates, Long employeeId) {
         boolean isExists = employeeRepo.existsById(employeeId);
-        if(!isExists) return null;
+        if(!isExists){
+            throw new ResourseNotFoundException("Employee with id "+employeeId+" does not exists");
+        }
         EmployeeEntity employeeEntity = employeeRepo.findById(employeeId).get();
         updates.forEach((field, value) -> {
             Field fieldToBeUpdated = ReflectionUtils.findField(EmployeeEntity.class, field);
