@@ -3,6 +3,7 @@ package com.saturnremorse.springbootmvc.controllers;
 
 import com.saturnremorse.springbootmvc.dto.EmployeeDto;
 import com.saturnremorse.springbootmvc.services.EmployeeService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -33,7 +34,7 @@ public class EmployeeController {
     }
 
     @PostMapping
-    public ResponseEntity<EmployeeDto> addNewEmployee(@RequestBody EmployeeDto inputEmployee){
+    public ResponseEntity<EmployeeDto> addNewEmployee(@RequestBody @Valid EmployeeDto inputEmployee){
         EmployeeDto employeeDto =  employeeService.addEmployee(inputEmployee);
         return new ResponseEntity<>(employeeDto, HttpStatus.CREATED);
     }
@@ -49,7 +50,7 @@ public class EmployeeController {
     }
 
     @PutMapping(path = "/{employeeId}")
-    public EmployeeDto updateEmployeeById(@RequestBody EmployeeDto inputDto, @PathVariable Long employeeId){
+    public EmployeeDto updateEmployeeById(@RequestBody @Valid EmployeeDto inputDto, @PathVariable Long employeeId){
         return employeeService.updateEmployeeById(inputDto, employeeId);
     }
 
